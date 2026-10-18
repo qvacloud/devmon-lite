@@ -34,8 +34,9 @@ sudo bash installer/install.sh
 powershell -ExecutionPolicy Bypass -File installer\install.ps1
 ```
 
-Ambos preguntan nombre, puerto, token, discos y si quieres **exponerlo por Internet con
-un tunel de Cloudflare**, y al terminar **muestran un QR** para escanear con la app.
+Ambos preguntan nombre, puerto, token, discos y el **acceso remoto** (solo LAN,
+Cloudflare Quick, Cloudflare fijo o ngrok), y al terminar **muestran un QR** para
+escanear con la app. Todo queda como servicio que arranca solo al encender el equipo.
 
 ### Manual (sin instalador)
 
@@ -64,11 +65,31 @@ make apk     # -> dist/devmon-lite.apk   (necesita ANDROID_HOME; sin Gradle)
 
 ## Acceso desde fuera de casa
 
-El instalador puede activar un **Cloudflare Quick Tunnel** (sin cuenta ni dominio) que
-da una URL publica temporal y la mete en el QR de Internet. Como esa URL es publica,
-**usa siempre un `-token`**. La URL cambia al reiniciar el tunel; el agente la relee
-sola (`-public-file`). Para una URL fija hace falta un *named tunnel* con tu propio
-dominio (requiere cuenta de Cloudflare).
+El instalador ofrece cuatro opciones y **configura el arranque automático** (systemd en
+Linux, tareas programadas en Windows), asi que el agente y el tunel **sobreviven a los
+reinicios**. Como la URL del tunel es publica, **usa siempre un `-token`**.
+
+| Opcion | Cuenta | URL | Sobrevive reinicios |
+|---|---|---|---|
+| 1) Solo LAN | no | `http://<ip>:55555` | si (IP local) |
+| 2) Cloudflare Quick | no | `*.trycloudflare.com` | **no**: la URL cambia |
+| 3) Cloudflare fijo | Cloudflare + dominio | tu hostname | **si** (fija, peticiones ilimitadas) |
+| 4) ngrok | ngrok (gratis) | `<algo>.ngrok-free.app` | **si** (dominio dev fijo) |
+
+Notas:
+- **Cloudflare Quick** no necesita cuenta, pero la URL cambia al reiniciar. El agente la
+  relee sola (`-public-file`), pero tendras que **volver a escanear** el QR tras un reinicio.
+- **Cloudflare fijo**: crea el tunel en el panel, anade un hostname publico hacia
+  `http://localhost:55555`, copia el token del tunel y pasalo al instalador. Peticiones
+  ilimitadas.
+- **ngrok**: crea una cuenta gratis, copia tu authtoken y tu dominio dev
+  (`algo.ngrok-free.app`). El dominio dev es **fijo y no caduca**. Limite del plan gratis:
+  **20.000 peticiones/mes** (con la app abierta sondeando cada 5 s lo agotas en ~28 h),
+  asi que usalo para consultas ocasionales, no como panel permanente.
+
+El objetivo de "sobrevivir al tiempo" lo cumplen las opciones 1, 3 y 4; la 3 es la unica
+**fija e ilimitada** (a cambio de necesitar un dominio propio).
+
 
 ## Compilar todo
 
