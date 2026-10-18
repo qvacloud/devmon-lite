@@ -26,7 +26,7 @@ import (
 //go:embed web/index.html
 var webFS embed.FS
 
-const version = "1.0.0"
+const version = "1.0.1"
 
 type options struct {
 	addr       string

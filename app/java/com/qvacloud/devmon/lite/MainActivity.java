@@ -24,7 +24,9 @@ import android.widget.Toast;
 
 import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -50,6 +52,8 @@ public class MainActivity extends Activity {
     private LinearLayout listContainer;
     private TextView emptyHint;
     private boolean polling = true;
+    private boolean structureDirty = true;
+    private final Map<String, Card> cards = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle b) {
@@ -154,36 +158,61 @@ public class MainActivity extends Activity {
     }
 
     private void render() {
+        if (structureDirty) {
+            rebuild();
+            structureDirty = false;
+        }
+        updateCards();
+    }
+
+    /** Reconstruye las tarjetas (solo cuando cambia la lista de equipos). */
+    private void rebuild() {
         listContainer.removeAllViews();
+        cards.clear();
         if (devices.isEmpty()) {
             listContainer.addView(emptyHint);
             return;
         }
-        for (Device d : devices) listContainer.addView(card(d));
+        for (Device d : devices) {
+            Card c = buildCard(d);
+            cards.put(d.id, c);
+            listContainer.addView(c.root);
+        }
     }
 
-    private View card(Device d) {
-        LinearLayout c = new LinearLayout(this);
-        c.setOrientation(LinearLayout.VERTICAL);
+    /** Refresca textos y colores sin tocar la estructura (no reinicia el scroll). */
+    private void updateCards() {
+        for (Device d : devices) {
+            Card c = cards.get(d.id);
+            if (c == null) continue;
+            boolean online = d.online;
+            int statusColor = online ? ACCENT : (d.known ? RED : DIM);
+            c.dot.setBackground(circle(statusColor));
+            c.state.setTextColor(statusColor);
+            c.state.setText(online ? "En linea" : (d.known ? "Caido" : "Conectando..."));
+            c.detail.setText(describe(d));
+        }
+    }
+
+    private Card buildCard(Device d) {
+        Card c = new Card();
+        c.root = new LinearLayout(this);
+        c.root.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.setMargins(0, 0, 0, dp(12));
-        c.setLayoutParams(lp);
-        c.setBackground(roundRect(CARD, dp(14)));
-        c.setPadding(dp(16), dp(14), dp(16), dp(14));
-
-        boolean online = d.online;
-        int statusColor = online ? ACCENT : (d.known ? RED : DIM);
+        c.root.setLayoutParams(lp);
+        c.root.setBackground(roundRect(CARD, dp(14)));
+        c.root.setPadding(dp(16), dp(14), dp(16), dp(14));
 
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
 
-        View dot = new View(this);
+        c.dot = new View(this);
         LinearLayout.LayoutParams dlp = new LinearLayout.LayoutParams(dp(12), dp(12));
         dlp.setMargins(0, 0, dp(10), 0);
-        dot.setLayoutParams(dlp);
-        dot.setBackground(circle(statusColor));
+        c.dot.setLayoutParams(dlp);
 
         TextView name = new TextView(this);
         name.setText(d.name);
@@ -192,25 +221,29 @@ public class MainActivity extends Activity {
         name.setLayoutParams(new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
-        TextView state = new TextView(this);
-        state.setText(online ? "En linea" : (d.known ? "Caido" : "Conectando..."));
-        state.setTextColor(statusColor);
-        state.setTextSize(13);
+        c.state = new TextView(this);
+        c.state.setTextSize(13);
 
-        row.addView(dot);
+        row.addView(c.dot);
         row.addView(name);
-        row.addView(state);
-        c.addView(row);
+        row.addView(c.state);
+        c.root.addView(row);
 
-        TextView detail = new TextView(this);
-        detail.setTextColor(DIM);
-        detail.setTextSize(13);
-        detail.setPadding(0, dp(8), 0, 0);
-        detail.setText(describe(d));
-        c.addView(detail);
+        c.detail = new TextView(this);
+        c.detail.setTextColor(DIM);
+        c.detail.setTextSize(13);
+        c.detail.setPadding(0, dp(8), 0, 0);
+        c.root.addView(c.detail);
 
-        c.setOnLongClickListener(v -> { showDeviceMenu(d); return true; });
+        c.root.setOnLongClickListener(v -> { showDeviceMenu(d); return true; });
         return c;
+    }
+
+    private static class Card {
+        LinearLayout root;
+        View dot;
+        TextView state;
+        TextView detail;
     }
 
     private String describe(Device d) {
@@ -381,6 +414,7 @@ public class MainActivity extends Activity {
 
     private void persist() {
         store.save(devices);
+        structureDirty = true;
         render();
     }
 

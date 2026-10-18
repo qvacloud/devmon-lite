@@ -34,6 +34,13 @@ ZXING="$AND/libs/zxing-core.jar"
 rm -rf "$BUILD"
 mkdir -p "$BUILD/classes" "$BUILD/dex" "$OUT"
 
+RES_ARGS=()
+if [ -d "$AND/res" ]; then
+  echo ">> aapt2 compile (res)"
+  "$AAPT2" compile --dir "$AND/res" -o "$BUILD/res.zip"
+  RES_ARGS=("$BUILD/res.zip")
+fi
+
 echo ">> aapt2 link"
 "$AAPT2" link \
   -o "$BUILD/base.apk" \
@@ -41,8 +48,9 @@ echo ">> aapt2 link"
   --manifest "$AND/AndroidManifest.xml" \
   --min-sdk-version 30 \
   --target-sdk-version 34 \
-  --version-code 1 \
-  --version-name "1.0"
+  --version-code 2 \
+  --version-name "1.0.1" \
+  "${RES_ARGS[@]}"
 
 echo ">> javac"
 find "$AND/java" -name '*.java' > "$BUILD/sources.txt"
