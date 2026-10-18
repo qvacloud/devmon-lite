@@ -47,7 +47,7 @@ $Disks  = Ask 'Discos a vigilar (separados por coma)' 'C:\'
 
 Say ''
 Say 'Acceso remoto (sobrevive a los reinicios):'
-Say '  1) no, solo en casa'
+Say '  1) no (solo LAN, o ya tengo mi propio tunel)'
 Say '  2) Cloudflare Quick  (sin cuenta; la URL CAMBIA al reiniciar)'
 Say '  3) Cloudflare fijo   (token de tunel; URL estable)'
 Say '  4) ngrok             (dominio dev fijo; 20k peticiones/mes)'
@@ -146,7 +146,7 @@ while ($true) {
     $AgentExtra = "-public `"https://$($Public -replace '^https?://','')`""
     Ok 'Tunel ngrok configurado (dominio fijo)'
   }
-  default { Ok 'Sin acceso remoto: solo red local' }
+  default { Ok "Sin tunel: solo red local (o usa tu propio tunel apuntando a localhost:$Port)" }
 }
 
 # --- firewall ---------------------------------------------------------------

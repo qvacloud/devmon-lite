@@ -56,7 +56,7 @@ DISKS="$(ask disks 'Discos a vigilar (separados por coma)' '/')"
 
 say ""
 say "Acceso remoto (sobrevive a los reinicios):"
-say "  $(c '1' 1)) no, solo en casa"
+say "  $(c '1' 1)) no (solo LAN, o ya tengo mi propio tunel)"
 say "  $(c '1' 2)) Cloudflare Quick  (sin cuenta; la URL CAMBIA al reiniciar)"
 say "  $(c '1' 3)) Cloudflare fijo   (token de tunel; URL estable)"
 say "  $(c '1' 4)) ngrok             (dominio dev fijo; 20k peticiones/mes)"
@@ -167,7 +167,7 @@ WRAP
     PUBLIC_ARGS="-public https://${PUBLIC#https://}"
     ok "Servicio de tunel ngrok creado (dominio fijo)"
     ;;
-  *) ok "Sin acceso remoto: solo red local" ;;
+  *) ok "Sin tunel: solo red local (o usa tu propio tunel apuntando a localhost:${PORT})" ;;
 esac
 
 # --- unidad systemd del agente ----------------------------------------------

@@ -86,6 +86,9 @@ Notas:
   (`algo.ngrok-free.app`). El dominio dev es **fijo y no caduca**. Limite del plan gratis:
   **20.000 peticiones/mes** (con la app abierta sondeando cada 5 s lo agotas en ~28 h),
   asi que usalo para consultas ocasionales, no como panel permanente.
+- **Tu propio tunel** (VPS, `frp`/`rathole`, `ssh -R`, nginx...): elige la opcion 1. El
+  agente escucha en la red; apunta tu tunel a `localhost:55555` y arranca el agente con
+  `-public https://tu-url` para que el QR salga ya con tu URL.
 
 El objetivo de "sobrevivir al tiempo" lo cumplen las opciones 1, 3 y 4; la 3 es la unica
 **fija e ilimitada** (a cambio de necesitar un dominio propio).
