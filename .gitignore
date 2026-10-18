@@ -1,0 +1,14 @@
+# binarios y artefactos
+/dm-lite
+/dm-lite.exe
+/dist/
+/app/build/
+*.apk
+*.exe
+
+# keystores (nunca commitear)
+*.keystore
+*.jks
+
+# temporales
+*.log
